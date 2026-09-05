@@ -107,5 +107,5 @@ Player ── Property
 | **ภูมิ** | **Tier 4** | Economy                   | `Money`, `Rent`, `RentPool`, `Tax`, `SellProperty`            |
 | **ตุ้ย** | **Tier 5** | Special Mechanics         | `Chance`, `Jail`, `TakeOver`                                  |
 | **ซัน** | **Tier 6** | AI                        | `AIPlayer`, `EasyAI`, `NormalAI`, `HardAI`                    |
-| **ตูน ป้อนข้าว** | **Tier 7** | Failure & Game Resolution | `Payment`, `Bankruptcy`, `GameResult`, `Winner`               |
+| **ซัน** | **Tier 7** | Failure & Game Resolution | `Payment`, `Bankruptcy`, `GameResult`, `Winner`               |
 | **ตูน ป้อนข้าว** | **Tier 8** | Technical / Architecture  | รวมทุก Class + Interface + Persistence + Testing Architecture |
