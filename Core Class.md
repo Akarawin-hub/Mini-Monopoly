@@ -94,3 +94,18 @@ Game ◆── Dice
 Board ◆── Tile
 Tile ──── Property
 Player ── Property
+
+
+
+
+
+| คน       | Tier       | หัวข้อ UML                | Class / Interface ที่ต้องออกแบบ                               |
+| -------- | ---------- | ------------------------- | ------------------------------------------------------------- |
+| **บีม** | **Tier 1** | Game Core                 | `Game`, `Player`, `GameState`, `Turn`                         |
+| **เหมย** | **Tier 2** | Board & Movement          | `Board`, `Tile`, `Dice`, `Position`                           |
+| **พีต้า** | **Tier 3** | Property                  | `Property`, `PropertyTier` + ความสัมพันธ์ `Player ↔ Property` |
+| **ภูมิ** | **Tier 4** | Economy                   | `Money`, `Rent`, `RentPool`, `Tax`, `SellProperty`            |
+| **ตุ้ย** | **Tier 5** | Special Mechanics         | `Chance`, `Jail`, `TakeOver`                                  |
+| **ซัน** | **Tier 6** | AI                        | `AIPlayer`, `EasyAI`, `NormalAI`, `HardAI`                    |
+| **ตูน ป้อนข้าว** | **Tier 7** | Failure & Game Resolution | `Payment`, `Bankruptcy`, `GameResult`, `Winner`               |
+| **ตูน ป้อนข้าว** | **Tier 8** | Technical / Architecture  | รวมทุก Class + Interface + Persistence + Testing Architecture |
