@@ -95,7 +95,7 @@ export class App {
             this.startGame();
         };
         this.screen.onceKey("1", startNewGame);
-        this.screen.onceKey("n", startNewGame);
+        // this.screen.onceKey("n", startNewGame);
 
         if (hasSave) {
             const resumeGame = () => {
