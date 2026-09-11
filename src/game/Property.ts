@@ -8,7 +8,9 @@ export class Property {
         public readonly rent: number,
     ) { }
 
-    public isOwned(): boolean { return this.owner !== null; }
+    public isOwned(): boolean { 
+        return this.owner !== null; 
+    }
 }
 
 export interface PlayerRef {

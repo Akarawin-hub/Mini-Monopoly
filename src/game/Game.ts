@@ -137,6 +137,7 @@ export class Game {
         const property = tile.property;
         if (player.money < property.price)
             return false;
+
         player.removeMoney(property.price);
         property.owner = { id: player.id, name: player.name };
         player.addProperty(property);
@@ -146,7 +147,9 @@ export class Game {
 
     public sellProperty(player: Player, propertyId: number): boolean {
         const property = player.properties.find(p => p.id === propertyId);
-        if (!property) return false;
+        if (!property) 
+            return false;
+
         player.removeProperty(property);
         property.owner = null;
         const sellPrice = Math.floor(property.price * 0.5);
@@ -163,7 +166,8 @@ export class Game {
             return false;
         if (offer < property.price * TAKEOVER_MULTIPLIER)
             return false;
-        if (buyer.money < offer) return false;
+        if (buyer.money < offer) 
+            return false;
 
         const seller = this.players.find(p => p.id === property.owner!.id);
         if (!seller)
@@ -251,7 +255,7 @@ export class Game {
 
     private drawChance(player: Player): void {
         const card = this.chanceDeck[Math.floor(Math.random() * this.chanceDeck.length)]!;
-        this.log(`- Chance: ${card.description}`);
+        this.log(`- Chance : ${card.description}`);
         this.onChance?.(player, card);
         card.apply(player, {
             move: (p, steps) => { p.position = movePosition(p.position, steps, this.board.tiles.length); },
@@ -273,9 +277,12 @@ export class Game {
     }
 
     public sellForDebt(propertyId: number): boolean {
-        if (!this.pendingDebt) return false;
+        if (!this.pendingDebt) 
+            return false;
+
         const player = this.currentPlayer;
-        if (!this.sellProperty(player, propertyId)) return false;
+        if (!this.sellProperty(player, propertyId)) 
+            return false;
 
         if (player.money >= 0 || player.properties.length === 0) {
             this.pendingDebt = false;

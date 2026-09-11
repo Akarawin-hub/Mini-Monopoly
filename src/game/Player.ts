@@ -25,13 +25,21 @@ export class Player {
         this.money = money;
     }
 
-    public addMoney(amount: number): void { this.money += amount; }
-    public removeMoney(amount: number): void { this.money -= amount; }
+    public addMoney(amount: number): void { 
+        this.money += amount; 
+    }
+
+    public removeMoney(amount: number): void { 
+        this.money -= amount; 
+    }
+
     public addProperty(property: Property): void {
-        if (!this.properties.includes(property)) this.properties.push(property);
+        if (!this.properties.includes(property)) 
+            this.properties.push(property);
     }
     public removeProperty(property: Property): void {
         const index = this.properties.indexOf(property);
-        if (index >= 0) this.properties.splice(index, 1);
+        if (index >= 0) 
+            this.properties.splice(index, 1);
     }
 }
