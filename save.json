@@ -1,0 +1,46 @@
+{
+  "currentPlayer": "human",
+  "players": [
+    {
+      "id": "human",
+      "name": "Player",
+      "kind": "Human",
+      "money": 1500,
+      "position": 6,
+      "status": "active",
+      "properties": []
+    },
+    {
+      "id": "easy",
+      "name": "Bot ( Easy )",
+      "kind": "AI Easy",
+      "money": 1400,
+      "position": 6,
+      "status": "active",
+      "properties": []
+    },
+    {
+      "id": "normal",
+      "name": "Bot ( Normal )",
+      "kind": "AI Normal",
+      "money": 1360,
+      "position": 4,
+      "status": "active",
+      "properties": [
+        4
+      ]
+    },
+    {
+      "id": "hard",
+      "name": "Bot ( Hard )",
+      "kind": "AI Hard",
+      "money": 1360,
+      "position": 5,
+      "status": "active",
+      "properties": [
+        5
+      ]
+    }
+  ],
+  "savedAt": "2026-09-11T15:55:31.626Z"
+}
