@@ -1,8 +1,8 @@
 import blessed from "blessed";
 import { execSync } from "child_process";
 import { Game, movePosition } from "../game/Game";
-import type { ChanceCard } from "../game/Chance";
-import { Player, type PlayerKind, type PlayerStatus } from "../game/Player";
+import { Player } from "../game/Player";
+import type { ChanceCard, SaveData, SavedPlayerData } from "../game/Types";
 import { EasyAI } from "../ai/EasyAI";
 import { NormalAI } from "../ai/NormalAI";
 import { HardAI } from "../ai/HardAI";
@@ -13,21 +13,11 @@ import { ActionMenu } from "./ActionMenu";
 import { DiceView } from "./DiceView";
 import { PropertyInfo } from "./PropertyInfo";
 import { Property } from "../game/Property";
-import { writeSave, readSave, type SaveData } from "../save";
+import { writeSave, readSave } from "../save";
 
 const SAVE_FILE = "save.json";
 const MOVE_STEP_DELAY_MS = 200;
 const PAUSE_AFTER_DICE_MS = 300;
-
-interface SavedPlayerData {
-    id: string;
-    name: string;
-    kind: PlayerKind;
-    money: number;
-    position: number;
-    status: PlayerStatus;
-    properties: number[];
-}
 
 export class App {
     private readonly screen: blessed.Widgets.Screen;
@@ -114,6 +104,7 @@ export class App {
             const player = new Player(sp.id, sp.name, sp.kind, sp.money);
             player.position = sp.position;
             player.status = sp.status;
+            player.purchaseCount = sp.purchaseCount ?? 0;
             return player;
         });
 
@@ -416,7 +407,7 @@ export class App {
             currentPlayer: this.game.currentPlayer.id,
             players: this.game.players.map((p): SavedPlayerData => ({
                 id: p.id, name: p.name, kind: p.kind, money: p.money,
-                position: p.position, status: p.status, properties: p.properties.map(x => x.id),
+                position: p.position, status: p.status, properties: p.properties.map(x => x.id), purchaseCount: p.purchaseCount,
             })),
             savedAt: new Date().toISOString(),
         };

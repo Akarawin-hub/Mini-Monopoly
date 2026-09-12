@@ -1,4 +1,5 @@
 import { mkdir } from "node:fs/promises";
+import type { SaveData } from "./game/Types";
 
 declare namespace Bun {
     function write(path: string, data: string): Promise<number>;
@@ -9,12 +10,6 @@ declare namespace Bun {
     }
 
     function file(path: string): BunFile;
-}
-
-export interface SaveData {
-    currentPlayer: string;
-    players: unknown[];
-    savedAt: string;
 }
 
 export const writeSave = async (file: string, data: SaveData): Promise<void> => {

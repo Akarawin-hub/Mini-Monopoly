@@ -1,15 +1,4 @@
-import type { Player } from "./Player";
-
-export interface ChanceContext {
-    readonly move: (player: Player, steps: number) => void;
-    readonly payTax: (player: Player, amount: number) => void;
-}
-
-export interface ChanceCard {
-    readonly title: string;
-    readonly description: string;
-    readonly apply: (player: Player, context: ChanceContext) => string;
-}
+import type { ChanceCard } from "./Types";
 
 export const createChanceDeck = (): ChanceCard[] => [
     {
@@ -42,4 +31,3 @@ export const createChanceDeck = (): ChanceCard[] => [
         }
     },
 ];
-

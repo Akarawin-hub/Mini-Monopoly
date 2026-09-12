@@ -4,6 +4,7 @@
     "": {
       "name": "mini-monopoly-tui",
       "dependencies": {
+        "mini-monopoly-tui": ".",
         "@types/blessed": "^0.1.25",
         "blessed": "^0.1.81",
       },
@@ -23,6 +24,8 @@
     "blessed": ["blessed@0.1.81", "", { "bin": { "blessed": "./bin/tput.js" } }, "sha512-LoF5gae+hlmfORcG1M5+5XZi4LBmvlXTzwJWzUlPryN/SJdSflZvROM2TwkT0GMpq7oqT48NRd4GS7BiVBc5OQ=="],
 
     "bun-types": ["bun-types@1.4.2", "", { "dependencies": { "@types/node": "*" } }, "sha512-bxV1FgK7yBIzjRe5zBozIM4Bem11ZJcCXSrjWRG3YWLt8yFDePu4cLjpebO8OvPeIE9trbyPF4fuj3Cia4Fj3w=="],
+
+    "mini-monopoly-tui": ["mini-monopoly-tui@file:", { "dependencies": { "@types/blessed": "^0.1.25", "blessed": "^0.1.81" }, "devDependencies": { "@types/bun": "^1.4.1", "typescript": "^5.6.3" } }],
 
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 

@@ -1,13 +1,8 @@
-import { Board, type Tile } from "./Board";
-import { createChanceDeck, type ChanceCard } from "./Chance";
+import { Board } from "./Board";
+import { createChanceDeck } from "./Chance";
 import { Player } from "./Player";
 import type { Property } from "./Property";
-
-export type EventLog = (message: string) => void;
-export type OnChanceFn = (player: Player, card: ChanceCard) => void;
-export type GameStatus = "playing" | "finished";
-
-export interface RandomSource { (): number; }
+import type { Tile, ChanceCard, EventLog, OnChanceFn, GameStatus, RandomSource } from "./Types";
 
 export function rollDice(random: RandomSource = Math.random): number {
     const roll = random() * 6;
@@ -21,6 +16,8 @@ export function movePosition(position: number, steps: number, boardSize: number)
 
 export const JAIL_BAIL_AMOUNT = 50;
 export const TAKEOVER_MULTIPLIER = 2.0;
+export const MAX_PROPERTIES = 5;
+export const MAX_DIRECT_PURCHASES = 7;
 
 export class Game {
     public readonly board = new Board();
@@ -137,10 +134,15 @@ export class Game {
         const property = tile.property;
         if (player.money < property.price)
             return false;
-
+        if (player.properties.length >= MAX_PROPERTIES)
+            return false;
+        if (player.purchaseCount >= MAX_DIRECT_PURCHASES)
+            return false;
+ 
         player.removeMoney(property.price);
         property.owner = { id: player.id, name: player.name };
         player.addProperty(property);
+        player.purchaseCount++;
         this.log(`${player.name} bought ${property.name} for $${property.price}.`);
         return true;
     }
@@ -152,7 +154,7 @@ export class Game {
 
         player.removeProperty(property);
         property.owner = null;
-        const sellPrice = Math.floor(property.price * 0.5);
+        const sellPrice = Math.floor(property.price * 0.2);
         player.addMoney(sellPrice);
         this.log(`${player.name} sold ${property.name} for $${sellPrice}.`);
         return true;

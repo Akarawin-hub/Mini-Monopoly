@@ -1,3 +1,5 @@
+import type { PlayerRef } from "./Types";
+
 export class Property {
     public owner: PlayerRef | null = null;
 
@@ -8,12 +10,7 @@ export class Property {
         public readonly rent: number,
     ) { }
 
-    public isOwned(): boolean { 
-        return this.owner !== null; 
+    public isOwned(): boolean {
+        return this.owner !== null;
     }
-}
-
-export interface PlayerRef {
-    readonly id: string;
-    readonly name: string;
 }

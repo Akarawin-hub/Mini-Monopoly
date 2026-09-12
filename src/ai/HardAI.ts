@@ -1,10 +1,10 @@
 import { JAIL_BAIL_AMOUNT, TAKEOVER_MULTIPLIER, type Game } from "../game/Game";
 import { Player } from "../game/Player";
 
-const MIN_CASH_RESERVE_AFTER_BUY = 200;
+const MIN_CASH_RESERVE_AFTER_BUY = 150;
 const ROI_THRESHOLD_LEADING = 0;
 const ROI_THRESHOLD_BEHIND = -20;
-const MIN_CASH_RESERVE_AFTER_BAIL = 150;
+const MIN_CASH_RESERVE_AFTER_BAIL = 100;
 const ACTIVE_PORTFOLIO_SIZE = 3;
 
 export class HardAI {

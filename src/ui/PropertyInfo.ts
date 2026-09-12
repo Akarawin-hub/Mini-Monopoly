@@ -2,6 +2,7 @@ import blessed from "blessed";
 import type { Board } from "../game/Board";
 import type { Player } from "../game/Player";
 import { PLAYER_COLORS } from "./PlayerView";
+import { MAX_PROPERTIES, MAX_DIRECT_PURCHASES } from "../game/Game";
 
 function visibleWidth(taggedText: string): number {
     const plain = taggedText.replace(/\{[^}]+\}/g, "");
@@ -133,11 +134,14 @@ export class PropertyInfo {
             return lines;
         }
 
-        const netWorth = human.money + human.properties.reduce((sum, p) => sum + p.price, 0);
+        const netWorth = human.money + human.properties.reduce((sum, p) => sum + Math.floor(p.price * 0.2), 0);
 
+        const propSlots = `${human.properties.length}/${MAX_PROPERTIES}`;
+        const buySlots  = `${human.purchaseCount}/${MAX_DIRECT_PURCHASES}`;
         lines.push(` {white-fg}Cash    {/white-fg} {green-fg}{bold}$${human.money.toLocaleString()}{/bold}{/green-fg}`);
-        lines.push(` {white-fg}Assets  {/white-fg} {cyan-fg}{bold}${human.properties.length}{/bold}{/cyan-fg}`);
-        lines.push(` {white-fg}Net worth{/white-fg} {yellow-fg}{bold}$${netWorth.toLocaleString()}{/bold}{/yellow-fg}`);
+        lines.push(` {white-fg}Props   {/white-fg} {cyan-fg}{bold}${propSlots}{/bold}{/cyan-fg}`);
+        lines.push(` {white-fg}Buys    {/white-fg} {magenta-fg}{bold}${buySlots}{/bold}{/magenta-fg}`);
+        lines.push(` {white-fg}Worth   {/white-fg} {yellow-fg}{bold}$${netWorth.toLocaleString()}{/bold}{/yellow-fg}`);
 
         if (human.properties.length > 0) {
             lines.push("{white-fg} " + "─".repeat(width - 1) + "{/white-fg}");

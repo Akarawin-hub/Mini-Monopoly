@@ -1,13 +1,4 @@
-export type TileType = "property" | "chance" | "tax" | "start" | "jail" | "goToJail" | "parking";
-
-export interface TileDef {
-    readonly index: number;
-    readonly type: TileType;
-    readonly name: string;
-    readonly rent: number;
-    readonly price: number;
-    readonly isCorner: boolean;
-}
+import type { TileDef } from "../game/Types";
 
 export const BOARD_32: TileDef[] = [
     { index: 0,  type: "start", name: "GO",           rent: 0,   price: 0,   isCorner: true },
@@ -54,4 +45,3 @@ export const BOARD_32: TileDef[] = [
 export const BOARD_SIZE = BOARD_32.length;
 export const CORNERS = [0, 8, 16, 24] as const;
 export const isCorner = (idx: number) => CORNERS.includes(idx as typeof CORNERS[number]);
-

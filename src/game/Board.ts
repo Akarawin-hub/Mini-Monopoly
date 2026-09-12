@@ -1,15 +1,6 @@
 import { Property } from "./Property";
 import { BOARD_32 } from "../ui/Board32";
-
-export type TileType = "start" | "property" | "tax" | "jail" | "goToJail" | "chance" | "parking";
-
-export interface Tile {
-    readonly index: number;
-    readonly name: string;
-    readonly type: TileType;
-    readonly property?: Property;
-    readonly amount?: number;
-}
+import type { Tile } from "./Types";
 
 export class Board {
     public readonly tiles: Tile[];

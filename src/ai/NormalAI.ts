@@ -1,9 +1,8 @@
-import { JAIL_BAIL_AMOUNT, TAKEOVER_MULTIPLIER, type Game } from "../game/Game";
+import { JAIL_BAIL_AMOUNT, TAKEOVER_MULTIPLIER, MAX_PROPERTIES, type Game } from "../game/Game";
 import { Player } from "../game/Player";
 
-const MIN_CASH_BUFFER_AFTER_BUY = 250;
+const MIN_CASH_BUFFER_AFTER_BUY = 150;
 const GOOD_RENT_THRESHOLD = 30;
-const MAX_PROPERTIES = 6;
 const MIN_CASH_BUFFER_AFTER_BAIL = 300;
 
 export class NormalAI {
