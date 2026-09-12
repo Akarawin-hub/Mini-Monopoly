@@ -255,7 +255,7 @@ export class Game {
 
     private drawChance(player: Player): void {
         const card = this.chanceDeck[Math.floor(Math.random() * this.chanceDeck.length)]!;
-        this.log(`- Chance : ${card.description}`);
+        this.log(`- Chance: ${card.description}`);
         this.onChance?.(player, card);
         card.apply(player, {
             move: (p, steps) => { p.position = movePosition(p.position, steps, this.board.tiles.length); },

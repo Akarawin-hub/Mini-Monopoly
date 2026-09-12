@@ -95,7 +95,6 @@ export class App {
             this.startGame();
         };
         this.screen.onceKey("1", startNewGame);
-        // this.screen.onceKey("n", startNewGame);
 
         if (hasSave) {
             const resumeGame = () => {
@@ -237,10 +236,6 @@ export class App {
             if (this.game.startTakeover(tile.property.id)) {
                 void this.showTakeoverPrompt(this.game.pendingTakeover!).then(() => this.autoSave());
             }
-        });
-        this.screen.key(["n"], () => {
-            if (this.busy) return;
-            process.exit(0);
         });
     }
 
