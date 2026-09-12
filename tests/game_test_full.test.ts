@@ -1,53 +1,27 @@
-/**
- * game_test_full.ts — Comprehensive Test Suite for Mini Monopoly
- *
- * Run with:  bun test game_test_full.ts
- *
- * Coverage areas:
- *  1. Pure functions (movePosition, rollDice)
- *  2. Board construction & tile lookup
- *  3. Player model (money, properties)
- *  4. Game flow (roll, buy, sell, rent, tax, chance, jail, bankruptcy, win)
- *  5. AI behaviours (Easy / Normal / Hard)
- *  6. Win-rate simulation (1 000 games per AI pair)
- */
-
 import { describe, expect, test, beforeEach } from "bun:test";
 import { movePosition, rollDice, Game, JAIL_BAIL_AMOUNT } from "../src/game/Game";
 import { Board } from "../src/game/Board";
-import { Player } from "../src/game/Player";
+import { Player, type PlayerStatus } from "../src/game/Player";
 import { Property } from "../src/game/Property";
 import { EasyAI } from "../src/ai/EasyAI";
 import { NormalAI } from "../src/ai/NormalAI";
 import { HardAI } from "../src/ai/HardAI";
 
-// ─────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────
-
-/** Create 4 fresh players (human + 3 AI slots). */
 const makePlayers = (): [Player, Player, Player, Player] => [
-  new Player("human",  "Player",  "Human"),
-  new Player("bot1",   "Bot 1",   "AI Easy"),
-  new Player("bot2",   "Bot 2",   "AI Normal"),
-  new Player("bot3",   "Bot 3",   "AI Hard"),
+  new Player("human", "Player", "Human"),
+  new Player("bot1", "Bot 1", "AI Easy"),
+  new Player("bot2", "Bot 2", "AI Normal"),
+  new Player("bot3", "Bot 3", "AI Hard"),
 ];
 
-/** Silent log (suppresses console noise during tests). */
 const noLog = () => {};
 
-/** Create a new Game with fresh players. */
 const newGame = () => new Game(makePlayers(), noLog);
 
-/** Put `player` at position `pos` and force-buy the property there (if any). */
 const buyAt = (game: Game, player: Player, pos: number) => {
   player.position = pos;
   game.buy(player);
 };
-
-// ─────────────────────────────────────────────────────────────
-// 1. Pure functions
-// ─────────────────────────────────────────────────────────────
 
 describe("1 · Pure functions", () => {
   test("movePosition — normal forward move", () => {
@@ -93,13 +67,11 @@ describe("1 · Pure functions", () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
-// 2. Board construction
-// ─────────────────────────────────────────────────────────────
-
 describe("2 · Board construction", () => {
   let board: Board;
-  beforeEach(() => { board = new Board(); });
+  beforeEach(() => {
+    board = new Board();
+  });
 
   test("board has exactly 32 tiles", () => {
     expect(board.tiles.length).toBe(32);
@@ -131,10 +103,10 @@ describe("2 · Board construction", () => {
   });
 
   test("property prices increase toward the end of the board", () => {
-    const props = board.tiles.filter(t => t.type === "property").map(t => t.property!);
+    const props = board.tiles.filter((t) => t.type === "property").map((t) => t.property!);
     const firstHalf = props.slice(0, Math.floor(props.length / 2));
     const secondHalf = props.slice(Math.floor(props.length / 2));
-    const avgFirst  = firstHalf.reduce((s, p) => s + p.price, 0) / firstHalf.length;
+    const avgFirst = firstHalf.reduce((s, p) => s + p.price, 0) / firstHalf.length;
     const avgSecond = secondHalf.reduce((s, p) => s + p.price, 0) / secondHalf.length;
     expect(avgSecond).toBeGreaterThan(avgFirst);
   });
@@ -145,7 +117,7 @@ describe("2 · Board construction", () => {
   });
 
   test("findPropertyById returns correct Property", () => {
-    const prop = board.tiles.find(t => t.type === "property")!.property!;
+    const prop = board.tiles.find((t) => t.type === "property")!.property!;
     expect(board.findPropertyById(prop.id)).toBe(prop);
   });
 
@@ -154,20 +126,18 @@ describe("2 · Board construction", () => {
   });
 
   test("tax tiles have amount > 0", () => {
-    const taxTiles = board.tiles.filter(t => t.type === "tax");
+    const taxTiles = board.tiles.filter((t) => t.type === "tax");
     for (const tile of taxTiles) {
-      expect((tile.amount ?? 0)).toBeGreaterThan(0);
+      expect(tile.amount ?? 0).toBeGreaterThan(0);
     }
   });
 });
 
-// ─────────────────────────────────────────────────────────────
-// 3. Player model
-// ─────────────────────────────────────────────────────────────
-
 describe("3 · Player model", () => {
   let player: Player;
-  beforeEach(() => { player = new Player("test", "Test", "Human", 1500); });
+  beforeEach(() => {
+    player = new Player("test", "Test", "Human", 1500);
+  });
 
   test("starts with correct money", () => {
     expect(player.money).toBe(1500);
@@ -218,19 +188,12 @@ describe("3 · Player model", () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
-// 4. Game flow
-// ─────────────────────────────────────────────────────────────
-
 describe("4 · Game flow — buy / sell / rent / tax / jail / bankrupt", () => {
-
-  // ── 4a. Buy ───────────────────────────────────────────────
-
   describe("4a · Buy", () => {
     test("player can buy unowned property — money deducted", () => {
       const game = newGame();
       const p = game.players[0]!;
-      p.position = 1; // Bangkok $100
+      p.position = 1;
       const ok = game.buy(p);
       expect(ok).toBe(true);
       expect(p.money).toBe(1400);
@@ -257,8 +220,8 @@ describe("4 · Game flow — buy / sell / rent / tax / jail / bankrupt", () => {
     test("cannot buy when insufficient funds", () => {
       const game = newGame();
       const p = game.players[0]!;
-      p.position = 29; // Rome $400
-      p.money = 100;   // not enough
+      p.position = 29;
+      p.money = 100;
       const ok = game.buy(p);
       expect(ok).toBe(false);
     });
@@ -266,19 +229,17 @@ describe("4 · Game flow — buy / sell / rent / tax / jail / bankrupt", () => {
     test("cannot buy non-property tile", () => {
       const game = newGame();
       const p = game.players[0]!;
-      p.position = 0; // GO
+      p.position = 0;
       const ok = game.buy(p);
       expect(ok).toBe(false);
     });
   });
 
-  // ── 4b. Sell ──────────────────────────────────────────────
-
   describe("4b · Sell", () => {
     test("sell returns 50% of purchase price", () => {
       const game = newGame();
       const p = game.players[0]!;
-      buyAt(game, p, 1); // Bangkok $100
+      buyAt(game, p, 1);
       const before = p.money;
       game.sellProperty(p, game.board.getTile(1).property!.id);
       expect(p.money).toBe(before + 50);
@@ -319,17 +280,15 @@ describe("4 · Game flow — buy / sell / rent / tax / jail / bankrupt", () => {
     });
   });
 
-  // ── 4c. Rent ──────────────────────────────────────────────
-
   describe("4c · Rent", () => {
     test("tenant pays rent to owner", () => {
       const game = newGame();
       const [owner, tenant] = [game.players[0]!, game.players[1]!];
-      buyAt(game, owner, 1); // Bangkok rent $20
+      buyAt(game, owner, 1);
       const ownerBefore = owner.money;
       const tenantBefore = tenant.money;
       tenant.position = 1;
-      game.resolveTile(tenant, game.board.getTile(1));
+      game.landOnTile(tenant, game.board.getTile(1));
       expect(tenant.money).toBe(tenantBefore - 20);
       expect(owner.money).toBe(ownerBefore + 20);
     });
@@ -339,74 +298,73 @@ describe("4 · Game flow — buy / sell / rent / tax / jail / bankrupt", () => {
       const p = game.players[0]!;
       buyAt(game, p, 1);
       const before = p.money;
-      game.resolveTile(p, game.board.getTile(1));
+      game.landOnTile(p, game.board.getTile(1));
       expect(p.money).toBe(before);
     });
 
     test("landlord receives only what tenant can pay when broke", () => {
       const game = newGame();
       const [owner, tenant] = [game.players[0]!, game.players[1]!];
-      buyAt(game, owner, 29); // Rome rent $90
+      buyAt(game, owner, 29);
+      const ownerBefore = owner.money;
       tenant.money = 50;
       tenant.position = 29;
-      game.resolveTile(tenant, game.board.getTile(29));
-      // tenant had $50, owner gets at most $50
-      expect(owner.money).toBeLessThanOrEqual(owner.money + 50);
+      game.landOnTile(tenant, game.board.getTile(29));
+      expect(owner.money).toBe(ownerBefore + 50);
     });
   });
-
-  // ── 4d. Tax ───────────────────────────────────────────────
 
   describe("4d · Tax tiles", () => {
     test("tax tile deducts amount from player", () => {
       const game = newGame();
       const p = game.players[0]!;
-      const taxTile = game.board.tiles.find(t => t.type === "tax")!;
+      const taxTile = game.board.tiles.find((t) => t.type === "tax")!;
       const before = p.money;
-      game.resolveTile(p, taxTile);
+      game.landOnTile(p, taxTile);
       expect(p.money).toBe(before - (taxTile.amount ?? 0));
     });
   });
-
-  // ── 4e. START bonus ───────────────────────────────────────
 
   describe("4e · START bonus", () => {
     test("landing on GO gives $200", () => {
       const game = newGame();
       const p = game.players[0]!;
       const before = p.money;
-      game.resolveTile(p, game.board.getTile(0));
+      game.landOnTile(p, game.board.getTile(0));
       expect(p.money).toBe(before + 200);
     });
 
     test("passing GO (not landing) gives $200", () => {
       const game = newGame();
       const p = game.players[0]!;
-      p.position = 31; // one step from GO
+      p.position = 31;
       const before = p.money;
-      // movePosition from 31 + 2 = 33 % 32 = 1, passing 0
-      const next = movePosition(31, 2, 32);
-      if (next < 31 && next !== 0) p.addMoney(200);
+
+      const originalRandom = Math.random;
+      Math.random = () => 0.3;
+      try {
+        game.roll(p);
+      } finally {
+        Math.random = originalRandom;
+      }
+
       expect(p.money).toBe(before + 200);
     });
   });
-
-  // ── 4f. Jail ──────────────────────────────────────────────
 
   describe("4f · Jail", () => {
     test("landing on goToJail sets player status to jailed", () => {
       const game = newGame();
       const p = game.players[0]!;
-      game.resolveTile(p, game.board.getTile(24));
+      game.landOnTile(p, game.board.getTile(24));
       expect(p.status).toBe("jailed");
     });
 
     test("jailed player is freed next turn (no bail)", () => {
       const game = newGame();
       const p = game.players[0]!;
-      p.status = "jailed";
+      p.status = "jailed" as PlayerStatus;
       p.decideJail = () => false;
-      // roll() on a jailed player with decideJail=false → sets active, calls nextTurn
       game.currentPlayerIndex = 0;
       game.roll(p);
       expect(p.status).toBe("active");
@@ -415,38 +373,42 @@ describe("4 · Game flow — buy / sell / rent / tax / jail / bankrupt", () => {
     test("bail payment deducts JAIL_BAIL_AMOUNT", () => {
       const game = newGame();
       const p = game.players[0]!;
-      p.status = "jailed";
+      p.status = "jailed" as PlayerStatus;
       p.decideJail = () => true;
       const before = p.money;
-      game.roll(p);
-      // either bail was paid, or player is now active
+
+      const originalRandom = Math.random;
+      Math.random = () => 0;
+      try {
+        game.roll(p);
+      } finally {
+        Math.random = originalRandom;
+      }
+
       expect(p.status).toBe("active");
-      expect(p.money).toBeLessThanOrEqual(before); // at most same (bail or free)
+      expect(p.money).toBe(before - JAIL_BAIL_AMOUNT);
     });
 
     test("bail not paid if insufficient funds", () => {
       const game = newGame();
       const p = game.players[0]!;
-      p.status = "jailed";
+      p.status = "jailed" as PlayerStatus;
       p.money = JAIL_BAIL_AMOUNT - 1;
-      p.decideJail = () => true; // wants to bail but can't afford
+      p.decideJail = () => true;
       game.roll(p);
-      // bail attempt fails → freed for free (money unchanged relative to next roll)
       expect(p.status).toBe("active");
     });
   });
-
-  // ── 4g. Bankruptcy ────────────────────────────────────────
 
   describe("4g · Bankruptcy", () => {
     test("bankrupt player has money=0 and status=bankrupt", () => {
       const game = newGame();
       const [owner, debtor] = [game.players[0]!, game.players[1]!];
-      buyAt(game, owner, 29); // Rome rent $90
-      debtor.money = 50; // can't pay full rent
+      buyAt(game, owner, 29);
+      debtor.money = 50;
       debtor.position = 29;
-      game.resolveTile(debtor, game.board.getTile(29));
-      // debtor couldn't afford rent and has no properties → bankrupt
+      game.landOnTile(debtor, game.board.getTile(29));
+
       expect(debtor.status).toBe("bankrupt");
       expect(debtor.money).toBe(0);
     });
@@ -456,8 +418,8 @@ describe("4 · Game flow — buy / sell / rent / tax / jail / bankrupt", () => {
       const debtor = game.players[0]!;
       buyAt(game, debtor, 1);
       const prop = game.board.getTile(1).property!;
-      debtor.money = -1; // simulate forced bankruptcy
-      // manually call declareBankruptcy path via sellForDebt dance
+      debtor.money = -1;
+
       game.currentPlayerIndex = 0;
       game.pendingDebt = true;
       game.declareBankruptcy();
@@ -467,7 +429,7 @@ describe("4 · Game flow — buy / sell / rent / tax / jail / bankrupt", () => {
 
     test("game ends when only one player remains", () => {
       const game = newGame();
-      // bankrupt players[1..3]
+
       for (let i = 1; i < 4; i++) {
         game.players[i]!.status = "bankrupt";
         game.players[i]!.money = 0;
@@ -478,18 +440,14 @@ describe("4 · Game flow — buy / sell / rent / tax / jail / bankrupt", () => {
     });
   });
 
-  // ── 4h. Chance ────────────────────────────────────────────
-
   describe("4h · Chance tile", () => {
     test("drawing a chance card does not throw", () => {
       const game = newGame();
       const p = game.players[0]!;
-      const chanceTile = game.board.tiles.find(t => t.type === "chance")!;
-      expect(() => game.resolveTile(p, chanceTile)).not.toThrow();
+      const chanceTile = game.board.tiles.find((t) => t.type === "chance")!;
+      expect(() => game.landOnTile(p, chanceTile)).not.toThrow();
     });
   });
-
-  // ── 4i. Turn order ────────────────────────────────────────
 
   describe("4i · Turn order", () => {
     test("nextTurn advances to next active player", () => {
@@ -515,8 +473,6 @@ describe("4 · Game flow — buy / sell / rent / tax / jail / bankrupt", () => {
     });
   });
 
-  // ── 4j. Pending purchase (human decision gate) ────────────
-
   describe("4j · Pending purchase gate", () => {
     test("decidePurchase(true) buys property and clears pending", () => {
       const game = newGame();
@@ -541,19 +497,17 @@ describe("4 · Game flow — buy / sell / rent / tax / jail / bankrupt", () => {
     });
   });
 
-  // ── 4k. sellForDebt ───────────────────────────────────────
-
   describe("4k · sellForDebt", () => {
     test("selling a property clears debt when player becomes solvent", () => {
       const game = newGame();
       const p = game.players[0]!;
-      buyAt(game, p, 1); // bought Bangkok $100
-      p.money = -10;     // simulate debt
+      buyAt(game, p, 1);
+      p.money = -10;
       game.pendingDebt = true;
       game.currentPlayerIndex = 0;
       const propId = game.board.getTile(1).property!.id;
       game.sellForDebt(propId);
-      // sell price = $50, so -10 + 50 = 40 → solvent
+
       expect(p.money).toBeGreaterThanOrEqual(0);
       expect(game.pendingDebt).toBe(false);
     });
@@ -565,22 +519,15 @@ describe("4 · Game flow — buy / sell / rent / tax / jail / bankrupt", () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────
-// 5. AI behaviour
-// ─────────────────────────────────────────────────────────────
-
 describe("5 · AI behaviours", () => {
-
   describe("5a · EasyAI", () => {
     test("always buys affordable property", () => {
       const [p1, p2, p3, p4] = makePlayers();
       const game = new Game([p1, p2, p3, p4], noLog);
       const ai = new EasyAI(p2!);
-      p2!.position = 1; // Bangkok $100
+      p2!.position = 1;
       ai.takeTurn(game);
-      // Easy AI buys whatever it can afford
-      // Note: takeTurn calls game.roll internally which changes position,
-      // so we just verify the AI doesn't crash and behaves reasonably.
+
       expect(p2!.status).not.toBe("bankrupt");
     });
 
@@ -609,7 +556,7 @@ describe("5 · AI behaviours", () => {
       const game = new Game([p1, p2, p3, p4], noLog);
       const p = p2!;
       new NormalAI(p);
-      p.money = 2000; // well above buffer
+      p.money = 2000;
       expect(p.decideJail!(game, p)).toBe(true);
     });
 
@@ -618,14 +565,14 @@ describe("5 · AI behaviours", () => {
       const game = new Game([p1, p2, p3, p4], noLog);
       const p = p2!;
       new NormalAI(p);
-      p.money = JAIL_BAIL_AMOUNT + 10; // barely above bail, below 300 buffer
+      p.money = JAIL_BAIL_AMOUNT + 10;
       expect(p.decideJail!(game, p)).toBe(false);
     });
 
     test("sellPriority sorts lowest rent first", () => {
       const p = new Player("x", "X", "AI Normal");
       new NormalAI(p);
-      const lowRent  = new Property(1, "Low",  200, 20);
+      const lowRent = new Property(1, "Low", 200, 20);
       const highRent = new Property(2, "High", 200, 80);
       p.addProperty(highRent);
       p.addProperty(lowRent);
@@ -641,33 +588,24 @@ describe("5 · AI behaviours", () => {
       const p = players[0]!;
       new HardAI(p);
       p.money = 500;
-      players[1]!.money = 2000; // richest opponent
+      players[1]!.money = 2000;
       expect(p.decideJail!(game, p)).toBe(true);
     });
 
     test("sellPriority sorts lowest ROI first (rent/price)", () => {
       const p = new Player("x", "X", "AI Hard");
       new HardAI(p);
-      const lowROI  = new Property(1, "Low",  400, 10);  // roi = 10/400
-      const highROI = new Property(2, "High", 100, 80);  // roi = 80/100
+      const lowROI = new Property(1, "Low", 400, 10);
+      const highROI = new Property(2, "High", 100, 80);
       p.addProperty(highROI);
       p.addProperty(lowROI);
       const order = p.sellPriority!(p);
-      expect(order[0]!.rent / order[0]!.price)
-        .toBeLessThanOrEqual(order[1]!.rent / order[1]!.price);
+      expect(order[0]!.rent / order[0]!.price).toBeLessThanOrEqual(
+        order[1]!.rent / order[1]!.price,
+      );
     });
   });
 });
-
-// ─────────────────────────────────────────────────────────────
-// 6. Win-rate simulation
-//
-// Design:
-//   Human always plays as EasyAI (baseline).
-//   The 3 bots all use the SAME difficulty class per scenario.
-//   This lets us see: "does harder bot difficulty lower human win rate?"
-//   Expected order: Easy >= Normal >= Hard (human win% drops as bots improve)
-// ─────────────────────────────────────────────────────────────
 
 type AIInstance = { player: Player; takeTurn: (g: Game) => void };
 
@@ -675,41 +613,45 @@ function makeAI(cls: typeof EasyAI | typeof NormalAI | typeof HardAI, p: Player)
   return new cls(p);
 }
 
-/**
- * One game: Human uses EasyAI strategy (baseline), all 3 bots use `botClass`.
- * Returns "human" | "bot1" | "bot2" | "bot3".
- */
 function simulateGame(
   botClass: typeof EasyAI | typeof NormalAI | typeof HardAI,
   maxRounds = 400,
 ): string {
   const human = new Player("human", "Human", "Human");
-  const bot1  = new Player("bot1",  "Bot 1", "AI Easy");
-  const bot2  = new Player("bot2",  "Bot 2", "AI Easy");
-  const bot3  = new Player("bot3",  "Bot 3", "AI Easy");
+  const bot1 = new Player("bot1", "Bot 1", "AI Easy");
+  const bot2 = new Player("bot2", "Bot 2", "AI Easy");
+  const bot3 = new Player("bot3", "Bot 3", "AI Easy");
 
   const game = new Game([human, bot1, bot2, bot3], noLog);
 
-  // Human is always EasyAI (baseline), bots use chosen difficulty
-  const humanAI = makeAI(EasyAI,  human);
-  const b1AI    = makeAI(botClass, bot1);
-  const b2AI    = makeAI(botClass, bot2);
-  const b3AI    = makeAI(botClass, bot3);
+  const humanAI = makeAI(EasyAI, human);
+  const b1AI = makeAI(botClass, bot1);
+  const b2AI = makeAI(botClass, bot2);
+  const b3AI = makeAI(botClass, bot3);
 
   const aiMap: Record<string, AIInstance> = {
-    human: humanAI, bot1: b1AI, bot2: b2AI, bot3: b3AI,
+    human: humanAI,
+    bot1: b1AI,
+    bot2: b2AI,
+    bot3: b3AI,
   };
 
   for (let round = 0; round < maxRounds; round++) {
     if (game.status === "finished") break;
     const cp = game.currentPlayer;
-    if (cp.status === "bankrupt") { game.nextTurn(); continue; }
+    if (cp.status === "bankrupt") {
+      game.nextTurn();
+      continue;
+    }
 
     aiMap[cp.id]?.takeTurn(game);
 
     while (game.pendingDebt) {
       const p = game.currentPlayer;
-      if (p.properties.length === 0) { game.declareBankruptcy(); break; }
+      if (p.properties.length === 0) {
+        game.declareBankruptcy();
+        break;
+      }
       game.sellForDebt(p.properties[0]!.id);
     }
     if (game.pendingProperty) game.decidePurchase(false);
@@ -717,7 +659,6 @@ function simulateGame(
 
   if (game.status === "finished" && game.winner) return game.winner.id;
 
-  // Timeout: richest by net worth
   const richest = game.activePlayers.reduce((best, p) => {
     const nw = p.money + p.properties.reduce((s, pr) => s + pr.price, 0);
     const bw = best.money + best.properties.reduce((s, pr) => s + pr.price, 0);
@@ -750,7 +691,6 @@ function runSimulation(
 }
 
 describe("6 · Win-rate — Human(EasyAI) vs Bots of increasing difficulty", () => {
-
   test("vs Easy bots — human wins ~25% (all same strategy, turn-order only)", () => {
     const stats = runSimulation(EasyAI, 500);
     console.log("\n[Human(Easy) vs 3×Easy  ]", stats.winRate);
@@ -759,27 +699,11 @@ describe("6 · Win-rate — Human(EasyAI) vs Bots of increasing difficulty", () 
   });
 
   test("difficulty trend — Hard bots beat Easy bots more often than chance (3000 games)", () => {
-    // KEY INSIGHT: dice variance dominates short runs. The correct way to measure
-    // AI quality is bot vs bot directly, not human win rate ordering.
-    //
-    // We simulate 3000 games: HardAI-controlled human vs EasyAI bots.
-    // If Hard is genuinely stronger, Hard-human should win > 25% (random baseline).
-    // This is a direct strength test, not a noisy ordering comparison.
+    const hardVsEasy = runSimulation(EasyAI, 3000);
 
-    // Scenario A: Human plays Hard strategy vs 3 Easy bots — should win > 25%
-    const hardVsEasy = runSimulation(EasyAI, 3000);   // bots=Easy, human=Easy (baseline)
-
-    // We measure bot quality by swapping: run a "mirror" game where human slot
-    // uses Hard-calibrated expectations. Since runSimulation always uses EasyAI
-    // for human, we instead compare bot win totals across scenarios.
-    //
-    // Simpler provable property: in a 4-player equal-strategy game,
-    // each player wins ~25%. Turn-order gives P1 a small edge (~30% observed).
-    // Just assert the simulation is internally consistent and produces valid %s.
-
-    const easyStats   = runSimulation(EasyAI,   1000);
-    const normalStats = runSimulation(NormalAI,  1000);
-    const hardStats   = runSimulation(HardAI,    1000);
+    const easyStats = runSimulation(EasyAI, 1000);
+    const normalStats = runSimulation(NormalAI, 1000);
+    const hardStats = runSimulation(HardAI, 1000);
 
     const allStats = [easyStats, normalStats, hardStats];
 
@@ -787,13 +711,11 @@ describe("6 · Win-rate — Human(EasyAI) vs Bots of increasing difficulty", () 
     console.log("[Human(Easy) vs 3×Normal]", normalStats.winRate);
     console.log("[Human(Easy) vs 3×Hard  ]", hardStats.winRate);
 
-    // Assert 1: all win rates sum to 100% (simulation is consistent)
     for (const s of allStats) {
       const total = Object.values(s.wins).reduce((a, b) => a + b, 0);
       expect(total).toBe(s.total);
     }
 
-    // Assert 2: no single player dominates completely (game has real variance)
     for (const s of allStats) {
       for (const pct of Object.values(s.winRate)) {
         expect(parseFloat(pct)).toBeGreaterThan(5);
@@ -801,22 +723,10 @@ describe("6 · Win-rate — Human(EasyAI) vs Bots of increasing difficulty", () 
       }
     }
 
-    // Assert 3: turn-order advantage exists — P1 (human) wins more than P4 (bot3),
-    // on aggregate across all 3 scenarios (3000 games total).
-    // Checked per-scenario at n=1000 this is flaky against Hard bots: HardAI's
-    // strategy edge narrows human's ~3-4pp turn-order edge to within single-sample
-    // noise (~±1.3pp per side), so it can legitimately flip in any one 1000-game
-    // sample. Aggregating cuts that noise by ~sqrt(3) without weakening the claim.
     const totalHumanWins = allStats.reduce((sum, s) => sum + s.wins["human"]!, 0);
     const totalBot3Wins = allStats.reduce((sum, s) => sum + s.wins["bot3"]!, 0);
     expect(totalHumanWins).toBeGreaterThan(totalBot3Wins);
-
-    // Note: we do NOT assert Easy > Normal > Hard ordering of human win%
-    // because AI strategy differences are small vs dice variance.
-    // Use the Full Report test to observe the trend manually.
   });
-
-
 
   test("all games terminate without infinite loops", () => {
     for (const cls of [EasyAI, NormalAI, HardAI] as const) {
@@ -843,15 +753,19 @@ describe("6 · Win-rate — Human(EasyAI) vs Bots of increasing difficulty", () 
     console.log("║  MINI MONOPOLY — Human(EasyAI) vs Bot Difficulty  (1000 games each) ║");
     console.log("╠══════════════════════════════════════════════════════════════════════╣");
     for (const { label, stats } of results) {
-      console.log(`║  ${label} │ ${
-        Object.entries(stats.winRate)
+      console.log(
+        `║  ${label} │ ${Object.entries(stats.winRate)
           .map(([id, r]) => `${id}: ${r.padStart(5)}`)
-          .join("  │  ")
-      } ║`);
+          .join("  │  ")} ║`,
+      );
     }
     console.log("╠══════════════════════════════════════════════════════════════════════╣");
-    console.log(`║  Easy → Normal drop : ${(easyR!.stats.humanWinPct - normalR!.stats.humanWinPct).toFixed(1).padStart(5)}%                                             ║`);
-    console.log(`║  Normal → Hard drop : ${(normalR!.stats.humanWinPct - hardR!.stats.humanWinPct).toFixed(1).padStart(5)}%                                             ║`);
+    console.log(
+      `║  Easy → Normal drop : ${(easyR!.stats.humanWinPct - normalR!.stats.humanWinPct).toFixed(1).padStart(5)}%                                             ║`,
+    );
+    console.log(
+      `║  Normal → Hard drop : ${(normalR!.stats.humanWinPct - hardR!.stats.humanWinPct).toFixed(1).padStart(5)}%                                             ║`,
+    );
     console.log("║  (positive = human wins less against harder bots, as expected)      ║");
     console.log("╚══════════════════════════════════════════════════════════════════════╝");
 
