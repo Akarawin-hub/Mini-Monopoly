@@ -1,0 +1,19 @@
+{
+  "name": "mini-monopoly-tui",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/main.ts",
+    "test": "bun test",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@types/blessed": "^0.1.25",
+    "blessed": "^0.1.81"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.1",
+    "typescript": "^5.6.3"
+  }
+}
