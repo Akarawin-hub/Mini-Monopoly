@@ -1,33 +1,39 @@
-import { TAKEOVER_MULTIPLIER, type Game } from "../game/Game";
-import { Player } from "../game/Player";
+import { Property } from "..";
+import { AIPlayer } from "./AIPlayer";
 
-export class EasyAI {
-    constructor(public readonly player: Player) {
-        player.sellPriority = (p) => [...p.properties].sort((a, b) => a.price - b.price);
-        player.decideJail = () => false;
+export class EasyAI extends AIPlayer {
+    constructor(id: number, name: string) {
+        super(id, name);
+    }
+    decidePurchase(property: Property): boolean {
+    const moneyBefore = this.money
+    const moneyAfter = moneyBefore - property.getPrice()
+
+    return moneyAfter > moneyBefore * 0.30
+    }
+    decideTakeOver(property: Property): boolean {
+    const cost = property.getPrice() * 1.65
+    const moneyAfter = this.money - cost
+
+    return moneyAfter >= 0
+    }   
+    decideJail(): "BRIBE" | "SKIP" {
+    const moneyBefore = this.money
+    const moneyAfter = moneyBefore - 500
+
+    if (moneyAfter > moneyBefore * 0.30) {
+        return "BRIBE"
     }
 
-    public takeTurn(game: Game): number {
-        const dice = game.roll(this.player);
-        if (dice === 0)
-            return dice;
+    return "SKIP"
+    }
+    decideSell(properties: Property[]): Property | null {
+    if (properties.length === 0) {
+        return null
+    }
 
-        const tile = game.board.getTile(this.player.position);
-        if (tile.type !== "property" || !tile.property)
-            return dice;
-
-        const property = tile.property;
-        if (!property.owner) {
-            if (this.player.money >= property.price) {
-                game.buy(this.player);
-            }
-        } else if (property.owner.id !== this.player.id) {
-            const offer = Math.ceil(property.price * TAKEOVER_MULTIPLIER);
-            if (this.player.money >= offer) {
-                game.takeOver(this.player, property.id, offer);
-            }
-        }
-
-        return dice;
+    return [...properties].sort(
+        (a, b) => a.getPrice() - b.getPrice()
+    )[0]
     }
 }
