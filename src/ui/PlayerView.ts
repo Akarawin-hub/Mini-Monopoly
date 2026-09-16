@@ -53,7 +53,7 @@ export class PlayerView {
             const name = `${colorOpen}${namePlain}${colorClose}`;
 
             const moneyPlain = `$${p.money.toLocaleString()}`.padEnd(moneyWidth);
-            const money = `{green-fg}${moneyPlain}{/green-fg}`;
+            const money = p.money < 0 ? `{red-fg}{bold}${moneyPlain}{/bold}{/red-fg}` : `{green-fg}${moneyPlain}{/green-fg}`;
 
             const propPlain = centerPad(String(p.properties.length), propWidth);
             const properties = `{cyan-fg}${propPlain}{/cyan-fg}`;

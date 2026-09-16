@@ -1,8 +1,8 @@
 import { Board } from "./Board";
-import { createChanceDeck } from "./Chance";
+import { pickChanceEvent } from "./Chance";
 import { Player } from "./Player";
 import type { Property } from "./Property";
-import type { Tile, ChanceCard, EventLog, OnChanceFn, GameStatus, RandomSource } from "./Types";
+import type { Tile, EventLog, OnChanceFn, GameStatus, RandomSource } from "./Types";
 
 export function rollDice(random: RandomSource = Math.random): number {
     const roll = random() * 6;
@@ -14,15 +14,17 @@ export function movePosition(position: number, steps: number, boardSize: number)
     return (raw + boardSize) % boardSize;
 }
 
-export const JAIL_BAIL_AMOUNT = 50;
-export const TAKEOVER_MULTIPLIER = 2.0;
+export const JAIL_BAIL_AMOUNT = 250;
+export const TAKEOVER_MULTIPLIER = 1.5;
 export const MAX_PROPERTIES = 5;
 export const MAX_DIRECT_PURCHASES = 7;
+export const TAKEOVER_LIMIT = 1;
+export const SELL_RATE = 0.3;
+export const TAX_RATE = 0.15;
 
 export class Game {
     public readonly board = new Board();
     public readonly players: Player[];
-    public readonly chanceDeck: ChanceCard[] = createChanceDeck();
     public currentPlayerIndex = 0;
     public status: GameStatus = "playing";
     public winner: Player | null = null;
@@ -108,7 +110,7 @@ export class Game {
                 this.log(`${player.name} landed on START and received $200.`);
                 break;
             case "tax":
-                this.pay(player, tile.amount ?? 100, "tax");
+                this.pay(player, Math.ceil(player.money * TAX_RATE), "tax");
                 break;
             case "jail":
             case "goToJail":
@@ -154,7 +156,7 @@ export class Game {
 
         player.removeProperty(property);
         property.owner = null;
-        const sellPrice = Math.floor(property.price * 0.2);
+        const sellPrice = Math.floor(property.price * SELL_RATE);
         player.addMoney(sellPrice);
         this.log(`${player.name} sold ${property.name} for $${sellPrice}.`);
         return true;
@@ -170,6 +172,8 @@ export class Game {
             return false;
         if (buyer.money < offer) 
             return false;
+        if (buyer.takeoverCount >= TAKEOVER_LIMIT)
+            return false;
 
         const seller = this.players.find(p => p.id === property.owner!.id);
         if (!seller)
@@ -180,6 +184,7 @@ export class Game {
         seller.removeProperty(property);
         property.owner = { id: buyer.id, name: buyer.name };
         buyer.addProperty(property);
+        buyer.takeoverCount++;
         this.log(`? ${buyer.name} took over ${property.name} from ${seller.name} for $${offer}!`);
         return true;
     }
@@ -190,6 +195,8 @@ export class Game {
             return false;
         const human = this.players.find(p => p.id === "human");
         if (!human)
+            return false;
+        if (human.takeoverCount >= TAKEOVER_LIMIT)
             return false;
         const minOffer = Math.ceil(property.price * TAKEOVER_MULTIPLIER);
         if (human.money < minOffer)
@@ -256,7 +263,7 @@ export class Game {
     }
 
     private drawChance(player: Player): void {
-        const card = this.chanceDeck[Math.floor(Math.random() * this.chanceDeck.length)]!;
+        const card = pickChanceEvent();
         this.log(`- Chance: ${card.description}`);
         this.onChance?.(player, card);
         card.apply(player, {

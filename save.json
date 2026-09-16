@@ -1,51 +1,56 @@
 {
-  "currentPlayer": "easy",
+  "currentPlayer": "normal",
   "players": [
     {
       "id": "human",
       "name": "Player",
       "kind": "Human",
-      "money": 780,
-      "position": 4,
+      "money": 200,
+      "position": 14,
       "status": "active",
       "properties": [
-        2,
-        4
+        4,
+        5
       ],
-      "purchaseCount": 2
+      "purchaseCount": 2,
+      "takeoverCount": 0
     },
     {
       "id": "easy",
       "name": "Bot ( Easy )",
       "kind": "AI Easy",
-      "money": 900,
-      "position": 1,
+      "money": 318,
+      "position": 6,
       "status": "active",
       "properties": [
+        2,
         1
       ],
-      "purchaseCount": 1
+      "purchaseCount": 2,
+      "takeoverCount": 0
     },
     {
       "id": "normal",
       "name": "Bot ( Normal )",
       "kind": "AI Normal",
-      "money": 980,
-      "position": 2,
+      "money": 700,
+      "position": 1,
       "status": "active",
       "properties": [],
-      "purchaseCount": 0
+      "purchaseCount": 0,
+      "takeoverCount": 0
     },
     {
       "id": "hard",
       "name": "Bot ( Hard )",
       "kind": "AI Hard",
-      "money": 925,
-      "position": 3,
+      "money": 425,
+      "position": 7,
       "status": "active",
       "properties": [],
-      "purchaseCount": 0
+      "purchaseCount": 0,
+      "takeoverCount": 0
     }
   ],
-  "savedAt": "2026-09-12T14:05:16.087Z"
+  "savedAt": "2026-09-16T11:18:14.765Z"
 }

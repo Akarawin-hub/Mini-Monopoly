@@ -66,4 +66,5 @@ export interface SavedPlayerData {
     status: PlayerStatus;
     properties: number[];
     purchaseCount: number;
+    takeoverCount: number;
 }

@@ -1,6 +1,6 @@
 import blessed from "blessed";
 import { execSync } from "child_process";
-import { Game, movePosition } from "../game/Game";
+import { Game, movePosition, TAKEOVER_MULTIPLIER, SELL_RATE } from "../game/Game";
 import { Player } from "../game/Player";
 import type { ChanceCard, SaveData, SavedPlayerData } from "../game/Types";
 import { EasyAI } from "../ai/EasyAI";
@@ -105,6 +105,7 @@ export class App {
             player.position = sp.position;
             player.status = sp.status;
             player.purchaseCount = sp.purchaseCount ?? 0;
+            player.takeoverCount = sp.takeoverCount ?? 0;
             return player;
         });
 
@@ -306,7 +307,7 @@ export class App {
                 const p = this.game.currentPlayer;
                 const owed = Math.max(0, -p.money);
                 list.setLabel(` You owe $${owed} — sell a property `);
-                const items = p.properties.map(prop => `${prop.name}  —  sell for $${Math.floor(prop.price * 0.5)}`);
+                const items = p.properties.map(prop => `${prop.name}  —  sell for $${Math.floor(prop.price * SELL_RATE)}`);
                 items.push("{red-fg}{bold}[ Declare Bankruptcy ]{/bold}{/red-fg}");
                 list.setItems(items as any);
                 this.screen.render();
@@ -359,8 +360,9 @@ export class App {
 
     private showTakeoverPrompt(property: import("../game/Property").Property): Promise<void> {
         return new Promise(resolve => {
-            const offer = Math.ceil(property.price * 2.0);
-            const box = blessed.box({top: "center",left: "center",width: "44%",height: "32%",border: { type: "line" },label: " Take Over? ",tags: true,align: "center" as const,valign: "middle" as const,style: { border: { fg: "magenta" }, label: { fg: "magenta", bold: true } },content: [ `{bold}Property: ${property.name}{/bold}`, `Current owner: ${property.owner!.name}`, `Original price: $${property.price}`, `Rent: $${property.rent}`, "", `{magenta-fg}{bold}Offer: $${offer} (200%){/bold}{/magenta-fg}`, "", "{green-fg}{bold}[T]{/bold}{/green-fg} Confirm    {red-fg}{bold}[N]{/bold}{/red-fg} Cancel" ].join("\n"),});
+            const offer = Math.ceil(property.price * TAKEOVER_MULTIPLIER);
+            const offerPercent = Math.round(TAKEOVER_MULTIPLIER * 100);
+            const box = blessed.box({top: "center",left: "center",width: "44%",height: "32%",border: { type: "line" },label: " Take Over? ",tags: true,align: "center" as const,valign: "middle" as const,style: { border: { fg: "magenta" }, label: { fg: "magenta", bold: true } },content: [ `{bold}Property: ${property.name}{/bold}`, `Current owner: ${property.owner!.name}`, `Original price: $${property.price}`, `Rent: $${property.rent}`, "", `{magenta-fg}{bold}Offer: $${offer} (${offerPercent}%){/bold}{/magenta-fg}`, "", "{green-fg}{bold}[T]{/bold}{/green-fg} Confirm    {red-fg}{bold}[N]{/bold}{/red-fg} Cancel" ].join("\n"),});
             this.screen.append(box);
             this.screen.render();
 
@@ -407,7 +409,7 @@ export class App {
             currentPlayer: this.game.currentPlayer.id,
             players: this.game.players.map((p): SavedPlayerData => ({
                 id: p.id, name: p.name, kind: p.kind, money: p.money,
-                position: p.position, status: p.status, properties: p.properties.map(x => x.id), purchaseCount: p.purchaseCount,
+                position: p.position, status: p.status, properties: p.properties.map(x => x.id), purchaseCount: p.purchaseCount, takeoverCount: p.takeoverCount,
             })),
             savedAt: new Date().toISOString(),
         };

@@ -7,6 +7,7 @@ export class Player {
     public status: PlayerStatus = "active";
     public readonly properties: Property[] = [];
     public purchaseCount = 0;
+    public takeoverCount = 0;
 
     public sellPriority?: SellPriorityFn;
     public decideJail?: JailDecisionFn;

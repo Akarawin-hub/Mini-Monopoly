@@ -55,7 +55,7 @@ const PROPERTY_BAR_COLORS: [string, string][] = [
 
 const TILE_SUBTEXT: Record<string, string> = {
     start: "+200$",
-    tax: "-100$",
+    tax: "-15%",
     parking: "FREE",
     jail: "",
     goToJail: "",
